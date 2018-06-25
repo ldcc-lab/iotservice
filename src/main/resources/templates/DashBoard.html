@@ -1,0 +1,61 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>ThingsOfValue Education Application</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<script src="/js/jquery-3.3.1.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/css/DashBoard.css">
+<script src="/js/DashBoard.js"></script>
+<meta name="viewport" content="width=device-width, user-scalable=no">
+<script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+<script src="https://www.amcharts.com/lib/3/serial.js"></script>
+<script src="/webjars/sockjs-client/1.0.2/sockjs.js"></script>
+<script src="/webjars/stomp-websocket/2.3.3/stomp.js"></script>
+<script
+	src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
+<link rel="stylesheet"
+	href="https://www.amcharts.com/lib/3/plugins/export/export.css"
+	type="text/css" media="all" />
+<script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
+<script src="https://www.amcharts.com/lib/3/themes/black.js"></script>
+</head>
+<body>
+	<section class="dashboard" id="main-column">
+		<div id="about">
+			<h1>
+				<span>ThingsOfValue</span><span> Home Management System</span>
+			</h1>
+			<p>
+				By <a href="https://www.ldcc.co.kr" class="mkr-link">LOTTE DATA
+					COMMUNICATION COMPANY @LDCC-LAB</a>
+			</p>
+		</div>
+		<div id="sensorValues">
+			<div class="sensor-values">
+				<div class="temperature"></div>
+				<label>'C</label>
+			</div>
+			<div class="sensor-values">
+				<div class="humidity"></div>
+				<label>%</label>
+			</div>
+			<div class="sensor-values">
+				<div class="dust"></div>
+				<label>Dust</label>
+			</div>
+			<div class="sensor-values">
+				<div class="light"></div>
+				<label>LIGHT</label>
+			</div>
+			<div class="sensor-values">
+				<div class="buttons">
+					<label><input type="button" value="ON" onclick="sendCommand('ON')"/>
+					<input type="button" value="OFF" onclick="sendCommand('OFF')"/></label>
+				</div>
+			</div>
+
+		</div>
+		<div id="chartdiv"></div>
+	</section>
+</body>
+</html>
