@@ -48,28 +48,32 @@
 
 		function connect() {
 
-			var socket = new SockJS('/dashboard');
+			var socket = new SockJS('/realtime');
 
 			stompClient = Stomp.over(socket);
 			stompClient.connect({}, function(frame) {
 				console.log('Connected: ' + frame);
 				stompClient.subscribe('/topic/subscribe', function(message) {
-					temperature_value = (JSON.parse(JSON.parse(message.body).body)).temperature;
-					humidity_value = (JSON.parse(JSON.parse(message.body).body)).humidity;
-					dust_value = (JSON.parse(JSON.parse(message.body).body)).dust;
-					if(temperature_value == null){//명령 결과 전구 상태가 웹소켓을 통해 전달. 
-						light_value = (JSON.parse(JSON.parse(message.body).body));
-						var lightPretty = calculateLight(light_value);
-						$('.light').empty();
-				    	$('.light').append(lightPretty);
-					}else{//센서 데이터가 웹소켓을 통해 전달 됨.
-				    	var dustPretty = calculateDust(dust_value);
-					   	$('.temperature').empty();
+					var type = (JSON.parse(JSON.parse(message.body).body)).type;
+					var data = (JSON.parse(JSON.parse(message.body).body)).data;
+					if( type == 'sensor' ) 
+					{
+	 					temperature_value = JSON.parse(data).temperature;
+						humidity_value = JSON.parse(data).humidity;
+						dust_value = JSON.parse(data).dust;
+						var dustPretty = calculateDust(dust_value);
+					 	$('.temperature').empty();
 				    	$('.temperature').append(temperature_value);
 				    	$('.humidity').empty();
 				    	$('.humidity').append(humidity_value);
 				    	$('.dust').empty();
 				    	$('.dust').append("DANGER");
+					}
+					if( type == 'command' ) {
+						light_value = data;
+						var lightPretty = calculateLight(light_value);
+						$('.light').empty();
+				    	$('.light').append(lightPretty);
 					}
 				});
 			}, function(error) {
@@ -216,9 +220,12 @@
 	});
 	//light
 	function calculateLight(light_value){
-		if(light_value == 1){
+		console.log(light_value);
+		console.log(light_value == '1');
+		console.log(light_value == 1);
+		if(light_value == '1'){
 			return "ON";
-		}else if(light_value == 0){
+		}else if(light_value == '0'){
 			return "OFF";
 		}else{
 			return "error";
