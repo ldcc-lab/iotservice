@@ -1,6 +1,7 @@
 	$(document).ready(function() {
 		connect();
 		InitDatas();
+		setInterval(function(){ InitDatas(); }, 5000);
 		$("#response").html("");
 		$("#chartdiv").html("");
 		

@@ -64,11 +64,22 @@ public class DashBoardService {
 		JSONObject om = (JSONObject) nev.get("om");
 		if (om.get("op").toString().equals("1")) { //Create 된 데이터만 사용함. op가 4면 삭제된 데이터.
 			JSONObject cin = (JSONObject) rep.get("m2m:cin");
-			return (String) cin.get("con");
+			String con = (String) cin.get("con");
+			JSONObject contentJson = JsonUtil.fromJson(con, JSONObject.class); //JSON 형식의 스트링이 아닌 경우도 JSON OBJECT로 변환 한다.
+			return JsonUtil.toJson(contentJson);
 		} else {
 			return "delete";
 		}
 	}
+	
+	private String contentInstanceParser(String body) throws Exception {
+		JSONParser jsonParser = new JSONParser();
+		JSONObject result = (JSONObject) jsonParser.parse(body);
+		JSONObject cin = (JSONObject) result.get("m2m:cin");
+		return (String) cin.get("con");
+		
+	}
+	
 /**
  * 플랫폼에 디바이스 제어 커맨드를 전송한다.
  * @param iotPlatformUrl
@@ -113,7 +124,7 @@ public class DashBoardService {
 	}
 	
 
-	public String getOnem2mData(String url, String oid, String accessToken) throws ClientProtocolException, IOException {
+	public String getOnem2mData(String url, String oid, String accessToken) throws Exception {
 		//
 		logger.debug("[getOnem2mData] to = {}, oid = {}, token = {}", url, oid, accessToken);
 		CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -129,6 +140,7 @@ public class DashBoardService {
 				if (res.getStatusLine().getStatusCode() == 200) {
 					org.apache.http.HttpEntity entity = (org.apache.http.HttpEntity) res.getEntity();
 					String reasonPhrase = EntityUtils.toString(entity);
+					reasonPhrase = this.contentInstanceParser(reasonPhrase);
 					logger.debug("[getOnem2mData] response = {} ", reasonPhrase);
 					try {
 						String result = reasonPhrase;
@@ -155,13 +167,12 @@ public class DashBoardService {
  * @param oid
  * @param accessToken
  * @return
- * @throws ParseException
- * @throws IOException
  * @throws org.json.simple.parser.ParseException 
+ * @throws Exception 
  */
-	public String ReadinitDatas(String iotPlatformUrl, String oid, String accessToken) throws ParseException, IOException, org.json.simple.parser.ParseException {
-		String sensorsUrl = iotPlatformUrl + "/S" + oid + "/"+sensorName+"/la?atr=con";
-		String lightUrl = iotPlatformUrl + "/S"+ oid + "/"+commandResultName+"/la?atr=con";
+	public String ReadinitDatas(String iotPlatformUrl, String oid, String accessToken) throws Exception {
+		String sensorsUrl = iotPlatformUrl + "/S" + oid + "/"+sensorName+"/la";
+		String lightUrl = iotPlatformUrl + "/S"+ oid + "/"+commandResultName+"/la";
 		String sensors = this.getOnem2mData(sensorsUrl, oid, accessToken);
 		String light = this.getOnem2mData(lightUrl, oid, accessToken);
 		JSONObject sensorsObj = JsonUtil.fromJson(sensors, JSONObject.class);
