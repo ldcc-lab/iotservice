@@ -221,9 +221,6 @@
 	});
 	//light
 	function calculateLight(light_value){
-		console.log(light_value);
-		console.log(light_value == '1');
-		console.log(light_value == 1);
 		if(light_value == '1'){
 			return "ON";
 		}else if(light_value == '0'){
@@ -234,7 +231,17 @@
 	}
 	//dust
 	function calculateDust(dust_value){
-		return "Normal";
+		var dustResult;
+		  if (dust_value < 31) {
+			  dustResult = "Good";
+			  } else if (dust_value < 81 && dust_value > 30) {
+				  dustResult = "Normal";
+			  } else if ( dust_value < 101 && dust_value > 80 ) {
+				  dustResult = "Bad";
+			  } else {
+				  dustResult = "Danger";
+			  }
+		return dustResult;
 	}
 	
 	//====SWITCH===
