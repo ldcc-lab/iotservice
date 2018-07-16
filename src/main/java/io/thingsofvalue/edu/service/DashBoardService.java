@@ -99,6 +99,14 @@ public class DashBoardService {
 	@Value("${io.thingsofvalue.oid.accessToken}")
 	String accessToken;
 	
+	private static long beforeTemperature = 0;
+	private static long beforeHumidity = 0;
+	private static long beforeDust = 0;
+	private static int temperatureCount = 0;
+	private static int humidityCount = 0;
+	private static int dustCount = 0;
+	
+	
 
 	
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -138,6 +146,7 @@ public class DashBoardService {
 	
 	private boolean operator(long value, String operator, long standardValue) {
 		//
+		logger.debug("[Operating] value={}, operator={}, standardValue={}",value, operator, standardValue);
 		if(operator.equals(">")) {
 			if(value > standardValue) {
 				return true;
@@ -150,34 +159,52 @@ public class DashBoardService {
 			if(value == standardValue) {
 				return true;
 			}
+		}else {
+			return false;
 		}
-		return true;
+		return false;
 	}
 	
 	private void executeRule(Object obj) throws Exception {
+		
 		if(obj instanceof JSONObject) {
 			long temperature = Long.parseLong((String)((JSONObject) obj).get("temperature"));
 			long dust = Long.parseLong((String)((JSONObject) obj).get("dust"));
 			long humidity = Long.parseLong((String)((JSONObject) obj).get("humidity"));
-
-			if(this.operator(temperature, ruleTemperatureOperator, Long.parseLong(ruleTemperatureValue))) {
-				this.sendMesageAPI(sendPhone, authKey, senderKey, ruleTemperatureMessage);
-				if(!ruleTemperatureAction.equals("false")) {
-					this.sendCommand(ruleTemperatureAction);
-				}
-			}
-			if(this.operator(humidity, ruleHumidityOperator, Long.parseLong(ruleHumidityValue))) {
-				this.sendMesageAPI(sendPhone, authKey, senderKey, ruleHumidityMessage);
-				if(!ruleHumidityAction.equals("false")) {
-					this.sendCommand(ruleHumidityAction);
-				}
-			}
-			if(this.operator(dust, ruleDustOperator, Long.parseLong(ruleDustValue))) {
-				this.sendMesageAPI(sendPhone, authKey, senderKey, ruleDustMessage);
-				if(!ruleDustAction.equals("false")) {
-					this.sendCommand(ruleDustAction);
-				}
-			}
+			//이전에 전달받은 값과 비교해서 반복적으로 똑같은 메시지를 보내지 않음.
+			//하나의 센서 값 당 최대 3번까지 보냄.
+            if(beforeTemperature != temperature && temperatureCount < 4) {
+            	//
+            	if(this.operator(temperature, ruleTemperatureOperator, Long.parseLong(ruleTemperatureValue))) {
+    				//메시지를 한번만 보냄.
+    					this.sendMesageAPI(sendPhone, authKey, senderKey, ruleTemperatureMessage);
+    				if(!ruleTemperatureAction.equals("false")) {
+    					this.sendCommand(ruleTemperatureAction);
+    				}
+    			}
+            	beforeTemperature = temperature;
+            	temperatureCount++;
+            }
+            if(beforeHumidity != humidity && humidityCount < 4) {
+            	if(this.operator(humidity, ruleHumidityOperator, Long.parseLong(ruleHumidityValue))) {
+    				this.sendMesageAPI(sendPhone, authKey, senderKey, ruleHumidityMessage);
+    				if(!ruleHumidityAction.equals("false")) {
+    					this.sendCommand(ruleHumidityAction);
+    				}
+    			}
+            	beforeHumidity = humidity;
+            	humidityCount++;
+            }
+            if(beforeDust != dust && dustCount < 4) {
+    			if(this.operator(dust, ruleDustOperator, Long.parseLong(ruleDustValue))) {
+    				this.sendMesageAPI(sendPhone, authKey, senderKey, ruleDustMessage);
+    				if(!ruleDustAction.equals("false")) {
+    					this.sendCommand(ruleDustAction);
+    				}
+    			}
+            	beforeDust = dust;
+            	dustCount++;
+            }
 	   }else {
 			if(obj.equals("1")) {
 				this.sendMesageAPI(sendPhone, authKey, senderKey, "전구가 켜졌습니다.");
