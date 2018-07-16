@@ -63,6 +63,9 @@ public class DashBoardService {
 	@Value("${rule.temperature.message}")
 	String ruleTemperatureMessage;
 	
+	@Value("${rule.temperature.action}")
+	String ruleTemperatureAction;
+	
 	@Value("${rule.humidity.value}")
 	String ruleHumidityValue;
 	
@@ -72,6 +75,9 @@ public class DashBoardService {
 	@Value("${rule.humidity.message}")
 	String ruleHumidityMessage;
 	
+	@Value("${rule.humidity.action}")
+	String ruleHumidityAction;
+	
 	@Value("${rule.dust.value}")
 	String ruleDustValue;
 	
@@ -80,6 +86,18 @@ public class DashBoardService {
 	
 	@Value("${rule.dust.message}")
 	String ruleDustMessage;
+	
+	@Value("${rule.dust.action}")
+	String ruleDustAction;
+	
+	@Value("${io.thingsofvalue.url}")
+	String iotPlatformUrl;
+	
+	@Value("${io.thingsofvalue.oid}")
+	String oid;
+	
+	@Value("${io.thingsofvalue.oid.accessToken}")
+	String accessToken;
 	
 
 	
@@ -133,9 +151,7 @@ public class DashBoardService {
 				return true;
 			}
 		}
-			
 		return true;
-		
 	}
 	
 	private void executeRule(Object obj) throws Exception {
@@ -143,18 +159,24 @@ public class DashBoardService {
 			long temperature = Long.parseLong((String)((JSONObject) obj).get("temperature"));
 			long dust = Long.parseLong((String)((JSONObject) obj).get("dust"));
 			long humidity = Long.parseLong((String)((JSONObject) obj).get("humidity"));
-			
+
 			if(this.operator(temperature, ruleTemperatureOperator, Long.parseLong(ruleTemperatureValue))) {
 				this.sendMesageAPI(sendPhone, authKey, senderKey, ruleTemperatureMessage);
-				System.out.println(ruleTemperatureMessage);
+				if(!ruleTemperatureAction.equals("false")) {
+					this.sendCommand(ruleTemperatureAction);
+				}
 			}
 			if(this.operator(humidity, ruleHumidityOperator, Long.parseLong(ruleHumidityValue))) {
 				this.sendMesageAPI(sendPhone, authKey, senderKey, ruleHumidityMessage);
-				System.out.println(ruleHumidityMessage);
+				if(!ruleHumidityAction.equals("false")) {
+					this.sendCommand(ruleHumidityAction);
+				}
 			}
 			if(this.operator(dust, ruleDustOperator, Long.parseLong(ruleDustValue))) {
 				this.sendMesageAPI(sendPhone, authKey, senderKey, ruleDustMessage);
-				System.out.println(ruleDustMessage);
+				if(!ruleDustAction.equals("false")) {
+					this.sendCommand(ruleDustAction);
+				}
 			}
 	   }else {
 			if(obj.equals("1")) {
@@ -183,7 +205,7 @@ public class DashBoardService {
  * @throws ParseException
  * @throws IOException
  */
-	public void sendCommand(String iotPlatformUrl, String oid, String cmd, String accessToken) throws ParseException, IOException {
+	public void sendCommand(String cmd) throws ParseException, IOException {
 		String resourceUrl = iotPlatformUrl + "/"+ mgmtCmdPrefix + "-" + oid;
 		logger.debug("[sendCommand] to = {}, oid= {}, commandKey = {}, commandValue = {}", resourceUrl, oid, cmdName, cmd);
 			CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -263,7 +285,7 @@ public class DashBoardService {
  * @throws org.json.simple.parser.ParseException 
  * @throws Exception 
  */
-	public String ReadinitDatas(String iotPlatformUrl, String oid, String accessToken) throws Exception {
+	public String ReadinitDatas() throws Exception {
 		String sensorsUrl = iotPlatformUrl + "/S" + oid + "/"+sensorName+"/la";
 		String lightUrl = iotPlatformUrl + "/S"+ oid + "/"+commandResultName+"/la";
 		String sensors = this.getOnem2mData(sensorsUrl, oid, accessToken);

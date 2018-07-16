@@ -26,12 +26,6 @@ import io.thingsofvalue.edu.service.DashBoardService;
 
 @Controller
 public class DashBoardController {
-	@Value("${io.thingsofvalue.url}")
-	private String url;
-	@Value("${io.thingsofvalue.oid}")
-	private String oid;
-	@Value("${io.thingsofvalue.oid.accessToken}")
-	private String accessToken;
 	
 	@Autowired
 	private SimpMessagingTemplate template;
@@ -66,9 +60,9 @@ public class DashBoardController {
 	@ResponseStatus(value = HttpStatus.OK)
 	public void sendToplug(@RequestBody String body, @RequestHeader HttpHeaders headers) throws Exception {
 		if (body.equals("ON")) {
-			dashboardService.sendCommand(url, oid, body, accessToken);
+			dashboardService.sendCommand(body);
 		} else {
-			dashboardService.sendCommand(url, oid, body, accessToken);
+			dashboardService.sendCommand(body);
 		}
 
 	}
@@ -77,7 +71,7 @@ public class DashBoardController {
 	@RequestMapping(value = "/initialize", method = RequestMethod.GET)
 	@ResponseBody
 	public String ReadInitData() throws Exception {
-		String result = dashboardService.ReadinitDatas(url, oid, accessToken);
+		String result = dashboardService.ReadinitDatas();
 		return result;
 	}
 }
