@@ -166,11 +166,10 @@ public class DashBoardService {
 	}
 	
 	private void executeRule(Object obj) throws Exception {
-		
 		if(obj instanceof JSONObject) {
-			long temperature = Long.parseLong((String)((JSONObject) obj).get("temperature"));
-			long dust = Long.parseLong((String)((JSONObject) obj).get("dust"));
-			long humidity = Long.parseLong((String)((JSONObject) obj).get("humidity"));
+			long temperature = (long) Float.parseFloat(((JSONObject) obj).get("temperature").toString());
+			long humidity = (long) Float.parseFloat(((JSONObject) obj).get("humidity").toString());
+			long dust = (long) Float.parseFloat(((JSONObject) obj).get("dust").toString());
 			//이전에 전달받은 값과 비교해서 반복적으로 똑같은 메시지를 보내지 않음.
 			//하나의 센서 값 당 최대 3번까지 보냄.
             if(beforeTemperature != temperature && temperatureCount < 4) {
