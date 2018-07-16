@@ -10,10 +10,10 @@ server.port=9090 => iotservice의 구동 포트
 ##IoT플랫폼 주소
 io.thingsofvalue.url=http://lottehotel.koreacentral.cloudapp.azure.com/education/base
 
-##IoT 플랫폼에 등록한 OID
+##IoT 플랫폼에 등록한 OID(디바이스)
 io.thingsofvalue.oid=0000000000000000_01033492780     
 
-##IoT 플랫폼에 OID 등록 시 발급 받은 AccessToken
+##IoT 플랫폼에 OID(디바이스) 등록 시 발급 받은 AccessToken
 io.thingsofvalue.oid.accessToken=129f47b7-e92d-3347-f1ad-67681a5145e3
 
 #mgmtCmdPrefix
@@ -45,6 +45,14 @@ message.sender.key=d6b73318d4927aa80df1022e07fecf06c55b44bf
 message.auth.key=
 
 #rule
+##예시) 아래 설정한 값에 대한 설명
+##1. 온도 값이 30도 이상일 때 Danger!! Temperature is 30 degree. Turn on Air Conditioner라는 메시지를 카카오톡으로 보내고
+##디바이스에 전구를 "켜"라는 명령을 보내서 실제 전구를 킨다.
+##2. 습도 값이 50% 이상일 때 Humidity is Higher than 50%라는 메시지를 카카오톡으로 보내고
+##디바이스에 전구를 "꺼"라는 명령을 보내서 실제 전구를 끈다.
+##3. 미세먼지 값이 200 이상일 때 Danger라는 메시지를 카카오톡으로 보내고
+##디바이스에는 아무런 액션을 실행하지 않는다.
+
 ##룰을 실행할 온도의 기준 값
 rule.temperature.value=30 
 
@@ -57,6 +65,7 @@ rule.temperature.message=Danger!! Temperature is 30 degree. Turn On Air Conditio
 ##설정한 기준에 온도 값이 도달할 경우 action을 실행함. action은 전구를 껏다 켜는 행위 (ON, OFF, false) 만 사용가능
 ##false일 경우 action을 실행하지 않음. ON일 경우 전구를 킴, OFF일 경우 전구를 끔.
 rule.temperature.action=ON
+
 
 ##StandardValueOfHumidity
 rule.humidity.value=50
