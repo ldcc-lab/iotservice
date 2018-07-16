@@ -68,7 +68,7 @@
 				    	$('.humidity').empty();
 				    	$('.humidity').append(humidity_value);
 				    	$('.dust').empty();
-				    	$('.dust').append("DANGER");
+				    	$('.dust').append(dustPretty);
 					}
 					if( type == 'command' ) {
 						light_value = data;
