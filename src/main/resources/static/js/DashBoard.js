@@ -232,11 +232,11 @@
 	//dust
 	function calculateDust(dust_value){
 		var dustResult;
-		  if (dust_value < 31) {
+		  if (dust_value < 31 || dust_value < 31.0) {
 			  dustResult = "Good";
-			  } else if (dust_value < 81 && dust_value > 30) {
+			  } else if ((dust_value < 81 && dust_value > 30) || (dust_value < 81.0 && dust_value > 30.0)) {
 				  dustResult = "Normal";
-			  } else if ( dust_value < 101 && dust_value > 80 ) {
+			  } else if ( (dust_value < 101 && dust_value > 80) || (dust_value < 101.0 && dust_value > 80.0 ) ) {
 				  dustResult = "Bad";
 			  } else {
 				  dustResult = "Danger";
