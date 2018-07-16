@@ -77,3 +77,4 @@ rule.humidity.action=OFF
 rule.dust.value=200
 rule.dust.operator=>
 rule.dust.message=Danger
+rule.humidity.action=false
