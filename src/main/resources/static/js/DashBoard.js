@@ -1,7 +1,7 @@
 	$(document).ready(function() {
 		connect();
 		InitDatas();
-		setInterval(function(){ InitDatas(); }, 5000);
+		setInterval(function(){ InitDatas(); }, 5000); //IoT플랫폼의 구독 기능을 사용하여 Websocket으로 실시간 데이터를 전송 받는 경우 해당 라인을 주석 처리
 		$("#response").html("");
 		$("#chartdiv").html("");
 		
