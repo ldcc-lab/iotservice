@@ -14,6 +14,7 @@ public class JsonUtil {
 	
 	public static <T> T fromJson(String json, Class<T> clazz){
 		//
-		return gson.fromJson(json, clazz);
+	    return gson.fromJson(json, clazz);
 	}
+	
 }

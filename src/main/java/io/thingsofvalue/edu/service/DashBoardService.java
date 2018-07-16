@@ -2,6 +2,7 @@ package io.thingsofvalue.edu.service;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.HashMap;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -19,6 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import io.thingsofvalue.edu.domain.KaKao;
 import io.thingsofvalue.edu.util.JsonUtil;
@@ -41,6 +45,43 @@ public class DashBoardService {
 	@Value("${mgmtcmd.command.name}")
 	String cmdName;
 	
+	@Value("${message.send.phone}")
+	String sendPhone;
+	
+	@Value("${message.sender.key}")
+	String senderKey;
+	
+	@Value("${message.auth.key}")
+	String authKey;
+	
+	@Value("${rule.temperature.value}")
+	String ruleTemperatureValue;
+	
+	@Value("${rule.temperature.operator}")
+	String ruleTemperatureOperator;
+	
+	@Value("${rule.temperature.message}")
+	String ruleTemperatureMessage;
+	
+	@Value("${rule.humidity.value}")
+	String ruleHumidityValue;
+	
+	@Value("${rule.humidity.operator}")
+	String ruleHumidityOperator;
+	
+	@Value("${rule.humidity.message}")
+	String ruleHumidityMessage;
+	
+	@Value("${rule.dust.value}")
+	String ruleDustValue;
+	
+	@Value("${rule.dust.operator}")
+	String ruleDustOperator;
+	
+	@Value("${rule.dust.message}")
+	String ruleDustMessage;
+	
+
 	
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -56,7 +97,6 @@ public class DashBoardService {
 		logger.debug("[subscriptionParsing] body = {}", body);
 		JSONParser jsonParser = new JSONParser();
 		jsonParser.parse(body);
-		
 		JSONObject result = (JSONObject) jsonParser.parse(body);
 		JSONObject sgn = (JSONObject) result.get("m2m:sgn");
 		JSONObject nev = (JSONObject) sgn.get("nev");
@@ -65,10 +105,63 @@ public class DashBoardService {
 		if (om.get("op").toString().equals("1")) { //Create 된 데이터만 사용함. op가 4면 삭제된 데이터.
 			JSONObject cin = (JSONObject) rep.get("m2m:cin");
 			String con = (String) cin.get("con");
-			JSONObject contentJson = JsonUtil.fromJson(con, JSONObject.class); //JSON 형식의 스트링이 아닌 경우도 JSON OBJECT로 변환 한다.
-			return JsonUtil.toJson(contentJson);
+			try {
+				JSONObject contentJson = JsonUtil.fromJson(con, JSONObject.class); //JSON 형식의 스트링이 아닌 경우도 JSON OBJECT로 변환 한다.
+				this.executeRule(contentJson);
+				return JsonUtil.toJson(contentJson);  
+			}catch (JsonSyntaxException e) {
+				this.executeRule(con);
+				return con;
+			}
 		} else {
 			return "delete";
+		}
+	}
+	
+	private boolean operator(long value, String operator, long standardValue) {
+		//
+		if(operator.equals(">")) {
+			if(value > standardValue) {
+				return true;
+			}
+		}else if(operator.equals("<")) {
+			if(value < standardValue) {
+				return true;
+			}
+		}else if(operator.equals("==")) {
+			if(value == standardValue) {
+				return true;
+			}
+		}
+			
+		return true;
+		
+	}
+	
+	private void executeRule(Object obj) throws Exception {
+		if(obj instanceof JSONObject) {
+			long temperature = Long.parseLong((String)((JSONObject) obj).get("temperature"));
+			long dust = Long.parseLong((String)((JSONObject) obj).get("dust"));
+			long humidity = Long.parseLong((String)((JSONObject) obj).get("humidity"));
+			
+			if(this.operator(temperature, ruleTemperatureOperator, Long.parseLong(ruleTemperatureValue))) {
+				this.sendMesageAPI(sendPhone, authKey, senderKey, ruleTemperatureMessage);
+				System.out.println(ruleTemperatureMessage);
+			}
+			if(this.operator(humidity, ruleHumidityOperator, Long.parseLong(ruleHumidityValue))) {
+				this.sendMesageAPI(sendPhone, authKey, senderKey, ruleHumidityMessage);
+				System.out.println(ruleHumidityMessage);
+			}
+			if(this.operator(dust, ruleDustOperator, Long.parseLong(ruleDustValue))) {
+				this.sendMesageAPI(sendPhone, authKey, senderKey, ruleDustMessage);
+				System.out.println(ruleDustMessage);
+			}
+	   }else {
+			if(obj.equals("1")) {
+				this.sendMesageAPI(sendPhone, authKey, senderKey, "전구가 켜졌습니다.");
+			}else if(obj.equals("0")) {
+				this.sendMesageAPI(sendPhone, authKey, senderKey, "전구가 꺼졌습니다.");
+			}
 		}
 	}
 	
