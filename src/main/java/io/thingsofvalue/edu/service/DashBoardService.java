@@ -2,9 +2,7 @@ package io.thingsofvalue.edu.service;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.HashMap;
 
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -19,7 +17,13 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -29,9 +33,6 @@ import io.thingsofvalue.edu.util.JsonUtil;
 
 @Service
 public class DashBoardService {
-	
-	@Value("${message.url}")
-	String messagePlatformUrl;
 	
 	@Value("${mgmtcmd.prefix}")
 	String mgmtCmdPrefix;
@@ -45,13 +46,32 @@ public class DashBoardService {
 	@Value("${mgmtcmd.command.name}")
 	String cmdName;
 	
-	@Value("${message.send.phone}")
+	@Value("${slack.message.enable}")
+	boolean slackEnable;
+	
+	@Value("${slack.message.url}")
+	String slackUrl;
+	
+	@Value("${slack.message.token}")
+	String slackToken;
+	
+	@Value("${slack.message.channel}")
+	String slackChannel;
+	
+	
+	@Value("${kakao.message.url}")
+	String messagePlatformUrl;
+	
+	@Value("${kakao.message.enable}")
+	boolean kakaoEnable;
+	
+	@Value("${kakao.message.send.phone}")
 	String sendPhone;
 	
-	@Value("${message.sender.key}")
+	@Value("${kakao.message.sender.key}")
 	String senderKey;
 	
-	@Value("${message.auth.key}")
+	@Value("${kakao.message.auth.key}")
 	String authKey;
 	
 	@Value("${rule.temperature.value}")
@@ -176,7 +196,12 @@ public class DashBoardService {
             	//
             	if(this.operator(temperature, ruleTemperatureOperator, Long.parseLong(ruleTemperatureValue))) {
     				//메시지를 한번만 보냄.
-    					this.sendMesageAPI(sendPhone, authKey, senderKey, ruleTemperatureMessage);
+            		   if(slackEnable) {
+            			   this.sendSlackMessageAPI(ruleTemperatureMessage);
+            		   }
+            		   if(kakaoEnable) {
+            			   this.sendKaKaoMessageAPI(ruleTemperatureMessage);
+            		   }
     				if(!ruleTemperatureAction.equals("false")) {
     					this.sendCommand(ruleTemperatureAction);
     				}
@@ -186,7 +211,12 @@ public class DashBoardService {
             }
             if(beforeHumidity != humidity && humidityCount < 4) {
             	if(this.operator(humidity, ruleHumidityOperator, Long.parseLong(ruleHumidityValue))) {
-    				this.sendMesageAPI(sendPhone, authKey, senderKey, ruleHumidityMessage);
+         		   if(slackEnable) {
+        			   this.sendSlackMessageAPI(ruleHumidityMessage);
+        		   }
+        		   if(kakaoEnable) {
+        			   this.sendKaKaoMessageAPI(ruleHumidityMessage);
+        		   }
     				if(!ruleHumidityAction.equals("false")) {
     					this.sendCommand(ruleHumidityAction);
     				}
@@ -196,19 +226,34 @@ public class DashBoardService {
             }
             if(beforeDust != dust && dustCount < 4) {
     			if(this.operator(dust, ruleDustOperator, Long.parseLong(ruleDustValue))) {
-    				this.sendMesageAPI(sendPhone, authKey, senderKey, ruleDustMessage);
-    				if(!ruleDustAction.equals("false")) {
+    				   if(slackEnable) {
+            			   this.sendSlackMessageAPI(ruleDustMessage);
+            		   }
+            		   if(kakaoEnable) {
+            			   this.sendKaKaoMessageAPI(ruleDustMessage);
+            		   }
+            		   if(!ruleDustAction.equals("false")) {
     					this.sendCommand(ruleDustAction);
-    				}
+    				    }
     			}
             	beforeDust = dust;
             	dustCount++;
             }
 	   }else {
 			if(obj.equals("1")) {
-				this.sendMesageAPI(sendPhone, authKey, senderKey, "전구가 켜졌습니다.");
+				   if(slackEnable) {
+        			   this.sendSlackMessageAPI("전구가 졌습니다.");
+        		   }
+        		   if(kakaoEnable) {
+        			   this.sendKaKaoMessageAPI("전구가 켜졌습니다.");
+        		   }
 			}else if(obj.equals("0")) {
-				this.sendMesageAPI(sendPhone, authKey, senderKey, "전구가 꺼졌습니다.");
+				   if(slackEnable) {
+        			   this.sendSlackMessageAPI("전구가 꺼졌습니다.");
+        		   }
+        		   if(kakaoEnable) {
+        			   this.sendKaKaoMessageAPI("전구가 졌습니다.");
+        		   }
 			}
 		}
 	}
@@ -334,8 +379,7 @@ public class DashBoardService {
 	 * @return
 	 * @throws Exception
 	 */
-	public int sendMesageAPI(String send_phone, String authKey, String sender_key,
-			String message) throws Exception {
+	public int sendKaKaoMessageAPI(String message) throws Exception {
 		logger.debug("[sendKakaoMessage] to = {}, message = {}", messagePlatformUrl, message);
 		
 		CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -348,10 +392,10 @@ public class DashBoardService {
 			KaKao kakao = new KaKao();
 			kakao.setAd_flag("N");
 			kakao.setMsg_id("iot");
-			kakao.setDest_phone(send_phone);
+			kakao.setDest_phone(sendPhone);
 			kakao.setMsg_body(message);
-			kakao.setSender_key(sender_key);
-			kakao.setSend_phone(send_phone);
+			kakao.setSender_key(senderKey);
+			kakao.setSend_phone(sendPhone);
 			
 //			String body2 = "{ \"msg_id\" : \"iot\", \"dest_phone\" : \"" + send_phone + "\", \"send_phone\" : \""
 //					+ send_phone + "\", \"sender_key\" : \"" + sender_key + "\", \"msg_body\" : \"" + message
@@ -379,4 +423,39 @@ public class DashBoardService {
 		return 0;
 
 	}
+	
+	
+	
+	/**
+	 */
+	public int sendSlackMessageAPI(String message) throws Exception {
+		CloseableHttpClient httpclient = HttpClients.createDefault();
+		try {
+			
+			String requestUrl = slackUrl+"?token="+slackToken+"&channel=%23"+slackChannel;
+			logger.debug("[sendSlackMessage] to = {}, token = {}, message = {}", requestUrl, slackToken, message);
+			HttpPost httpPost = new HttpPost(requestUrl);
+			ByteArrayEntity entity = new ByteArrayEntity(message.getBytes("UTF-8"));
+			logger.debug("[messageBody] {}", message);
+			httpPost.setEntity(entity);
+
+			CloseableHttpResponse res = httpclient.execute(httpPost);
+
+			try {
+				if (res.getStatusLine().getStatusCode() == 200) {
+					org.apache.http.HttpEntity entity2 = (org.apache.http.HttpEntity) res.getEntity();
+					logger.debug(EntityUtils.toString(entity2));
+				} else {
+					logger.error("[slackMessage]");
+				}
+			} finally {
+				res.close();
+			}
+		} finally {
+			httpclient.close();
+		}
+		return 0;
+
+	}
+	
 }
