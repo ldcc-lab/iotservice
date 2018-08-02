@@ -151,11 +151,15 @@ public class DashBoardService {
 		if (om.get("op").toString().equals("1")) { //Create 된 데이터만 사용함. op가 4면 삭제된 데이터.
 			JSONObject cin = (JSONObject) rep.get("m2m:cin");
 			String con = (String) cin.get("con");
+			System.out.println("=1=1==");
 			try {
+				System.out.println("init");
 				JSONObject contentJson = JsonUtil.fromJson(con, JSONObject.class); //JSON 형식의 스트링이 아닌 경우도 JSON OBJECT로 변환 한다.
+				System.out.println("be");
 				this.executeRule(contentJson);
 				return JsonUtil.toJson(contentJson);  
 			}catch (JsonSyntaxException e) {
+				System.out.println("==11==");
 				this.executeRule(con);
 				return con;
 			}
