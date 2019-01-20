@@ -262,6 +262,12 @@ public class DashBoardService {
 		}
 	}
 	
+	/**
+	 * 플랫폼으로 부터 조회한 JSON 데이터(contentInstance) 중에 실제 사용 될 값(content)를 파싱하여 리턴 한다.
+	 * @param body (contentinstance)
+	 * @return
+	 * @throws Exception
+	 */
 	private String contentInstanceParser(String body) throws Exception {
 		JSONParser jsonParser = new JSONParser();
 		JSONObject result = (JSONObject) jsonParser.parse(body);
@@ -313,7 +319,14 @@ public class DashBoardService {
 
 	}
 	
-
+/**
+ *  플랫폼에 저장 되어 있는 데이터를 가져온다.
+ * @param url : 데이터의 주소
+ * @param oid : 디바이스 아이디 또는 서비스 아이디
+ * @param accessToken : 디바이스 생성 또는 계정 생성 시 발급 받은 토큰
+ * @return
+ * @throws Exception
+ */
 	public String getOnem2mData(String url, String oid, String accessToken) throws Exception {
 		//
 		logger.debug("[getOnem2mData] to = {}, oid = {}, token = {}", url, oid, accessToken);
@@ -362,12 +375,13 @@ public class DashBoardService {
  */
 	public String ReadinitDatas() throws Exception {
 		String sensorsUrl = iotPlatformUrl + "/S" + oid + "/"+sensorName+"/la";
-		String lightUrl = iotPlatformUrl + "/S"+ oid + "/"+commandResultName+"/la";
+		String signUrl = iotPlatformUrl + "/S"+ oid + "/"+commandResultName+"/la";
 		String sensors = this.getOnem2mData(sensorsUrl, oid, accessToken);
-		String light = this.getOnem2mData(lightUrl, oid, accessToken);
+		String sign = this.getOnem2mData(signUrl, oid, accessToken);
+		JSONObject signObj = JsonUtil.fromJson(sign, JSONObject.class);
+		String signResult = (String) signObj.get("power");
 		JSONObject sensorsObj = JsonUtil.fromJson(sensors, JSONObject.class);
-		sensorsObj.put("light", light);
-		
+		sensorsObj.put("light", signResult);
 		return sensorsObj.toJSONString(); 
 	}
 	
