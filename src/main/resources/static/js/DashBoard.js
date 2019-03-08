@@ -36,7 +36,7 @@
 			    	$('.dust').empty();
 			    	$('.dust').append(dustPretty);
 			    	$('.light').empty();
-			    	$('.light').append(lightPretty);
+			    	$('.light').append(light_value);
 			    	
 			    }
 			};

@@ -288,22 +288,42 @@ public class DashBoardService {
  */
 	public void sendCommand(String cmd) throws ParseException, IOException {
 		String resourceUrl = iotPlatformUrl + "/"+ mgmtCmdPrefix + "-" + oid;
+		
+		String body = null;
 		logger.debug("[sendCommand] to = {}, oid= {}, commandKey = {}, commandValue = {}", resourceUrl, oid, cmdName, cmd);
 			CloseableHttpClient httpclient = HttpClients.createDefault();
+			JSONObject mgc = new JSONObject();
+			JSONObject cmt = new JSONObject();
+
+//		mgc.put("m2m:mgc", value);
+			if(cmd.equals("ON")) {
+				JSONObject jsonObject = new JSONObject();
+				jsonObject.put("signPower","on");
+				 cmd = jsonObject.toJSONString();
+				  body = "{ \"m2m:mgc\": {\"cmt\": 4,\"exra\": { \"any\":[{\"nm\" :\"" + cmdName + "\", \"val\" : \""
+							+ cmd + "\"} ]},\"exm\" : 1,\"exe\":true,\"pexinc\":false}}";
+			} else if(cmd.equals("OFF")) {
+				JSONObject jsonObject = new JSONObject();
+				jsonObject.put("signPower","off");
+				 cmd = jsonObject.toJSONString();
+
+				  body = "{ \"m2m:mgc\": {\"cmt\": 4,\"exra\": { \"any\":[{\"nm\" :\"" + cmdName + "\", \"val\" : \""
+							+ cmd + "\"} ]},\"exm\" : 1,\"exe\":true,\"pexinc\":false}}";			}
 		try {
+		    System.out.println("======body : " + body);
 			HttpPut httpPut = new HttpPut(resourceUrl);
 			httpPut.setHeader("X-M2M-RI", "RQI0001"); //
-			httpPut.setHeader("X-M2M-Origin", "/S" + oid); //
+			httpPut.setHeader("X-M2M-Origin", "/lemsadmin"); //
 			httpPut.setHeader("Accept", "application/json");
 			httpPut.setHeader("Authorization", accessToken);
 			httpPut.setHeader("Content-Type", "application/vnd.onem2m-res+json");
-			String body = "{ \"m2m:mgc\": {\"cmt\": 4,\"exra\": { \"any\":[{\"nm\" :\"" + cmdName + "\", \"val\" : \""
-					+ cmd + "\"} ]},\"exm\" : 1,\"exe\":true,\"pexinc\":false}}";
+			
 			httpPut.setEntity(new StringEntity(body));
 
 			CloseableHttpResponse res = httpclient.execute(httpPut);
 
 			try {
+				System.out.println(res.getStatusLine().getStatusCode());
 				if (res.getStatusLine().getStatusCode() == 200) {
 					org.apache.http.HttpEntity entity = (org.apache.http.HttpEntity) res.getEntity();
 					logger.debug(EntityUtils.toString(entity));
@@ -334,7 +354,7 @@ public class DashBoardService {
 		try {
 			HttpGet httpGet = new HttpGet(url);
 			httpGet.setHeader("X-M2M-RI", "RQI0001"); //
-			httpGet.setHeader("X-M2M-Origin", "/S" + oid); //
+			httpGet.setHeader("X-M2M-Origin", "/lemsadmin"); //
 			httpGet.setHeader("Accept", "application/json");
 			httpGet.setHeader("Authorization", accessToken);
 
